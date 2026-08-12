@@ -1,0 +1,12 @@
+{
+  "name": "project-docs",
+  "description": "Orient, record, and audit a project whose state lives in three root files: history.md (newest-first narrative log), TODO.md (open work), README.md. Five skills: /wherex reads them, /updatex writes the session back into them and trims history, /addtodo files one item, /planning-review audits docs against code, /updateplan re-derives the structural parallel plan.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Nick Porcaro",
+    "url": "https://github.com/pianonik"
+  },
+  "homepage": "https://github.com/pianonik/gists/tree/main/project-docs-plugin",
+  "license": "MIT",
+  "keywords": ["todo", "history", "planning", "review", "docs", "skill"]
+}

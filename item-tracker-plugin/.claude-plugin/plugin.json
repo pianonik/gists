@@ -1,0 +1,12 @@
+{
+  "name": "item-tracker",
+  "description": "Orient, record, and audit a project that tracks work as one markdown file per item under items/, where each file's status: field is the source of truth and TODO.md / DONE.md are generated views. Five skills: /whereitems, /additem, /updateitems, /updateitemplan, /planning-items-review. The item-store counterparts of the project-docs plugin.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Nick Porcaro",
+    "url": "https://github.com/pianonik"
+  },
+  "homepage": "https://github.com/pianonik/gists/tree/main/item-tracker-plugin",
+  "license": "MIT",
+  "keywords": ["tracker", "items", "todo", "planning", "review", "skill"]
+}

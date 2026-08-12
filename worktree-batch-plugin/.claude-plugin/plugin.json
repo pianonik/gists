@@ -1,0 +1,12 @@
+{
+  "name": "worktree-batch",
+  "description": "Git worktrees as disposable workspaces, plus batches of unattended jobs that accumulate on one branch. /mkwt creates a worktree and moves the session into it, /wtmerge and /fwtmerge land its work on the base branch, /projectreview turns a commit review into ready-to-open worktree jobs, /sequencework runs an approved queue of jobs in sequence onto a single pending branch and is resumable after a kill.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Nick Porcaro",
+    "url": "https://github.com/pianonik"
+  },
+  "homepage": "https://github.com/pianonik/gists/tree/main/worktree-batch-plugin",
+  "license": "MIT",
+  "keywords": ["git", "worktree", "batch", "review", "unattended", "skill"]
+}

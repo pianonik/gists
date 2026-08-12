@@ -1,0 +1,12 @@
+{
+  "name": "iterate",
+  "description": "Build, test, fix loops that keep going until the change actually works rather than stopping when it compiles. Testing goes through the project's own automation and screenshots through the project's own capture path, never desktop screen-scraping. /itrm macOS, /itri connected iOS device, /itrs iOS Simulator, /itrp macOS including audio-plugin formats. The commands come from one declared Makefile target, itr-info, which the skill offers to write for you.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Nick Porcaro",
+    "url": "https://github.com/pianonik"
+  },
+  "homepage": "https://github.com/pianonik/gists/tree/main/iterate-plugin",
+  "license": "MIT",
+  "keywords": ["build", "test", "iterate", "ios", "macos", "audio-plugin", "skill"]
+}
