@@ -87,15 +87,16 @@ The skills call into two helper scripts that live in the repo, at
 `items/scripts/`. They are repo-side rather than loaded from the plugin so that
 the store's format and its tooling stay versioned together with the content.
 
-**Working copies of both are included** — see
-[item-store/](item-store/). Installing them is one command:
+**Working copies are included** — see [item-store/](item-store/), which also
+ships `init_items.py` for converting an existing hand-written TODO file into a
+store. Installing them is one command:
 
 ```bash
 mkdir -p items/scripts && cp item-store/*.py items/scripts/
 ```
 
-Standard-library Python 3, no dependencies, 240 lines between them. The
-interface they implement, should you want to write your own instead:
+Standard-library Python 3, no dependencies. The interface `itemlib` implements,
+should you want to write your own instead:
 
 ### `items/scripts/itemlib.py`
 
@@ -129,6 +130,13 @@ To adopt it:
 mkdir -p items/scripts && cp item-store/*.py items/scripts/
 ```
 
-Then write your items as `items/<slug>.md` in the format above, and run
-`python3 items/scripts/export_todo.py` to generate the views. `/additem` will
-create correctly-formed items for you from that point on.
+If you already have a hand-written TODO file, convert it rather than retyping
+it:
+
+```bash
+python3 items/scripts/init_items.py TODO.md --scan     # then --map, then run it
+```
+
+Otherwise write your items as `items/<slug>.md` in the format above and run
+`python3 items/scripts/export_todo.py` to generate the views. `/additem` creates
+correctly-formed items for you from that point on.

@@ -2,7 +2,7 @@
 
 Claude Code skills, packaged as a
 [plugin marketplace](https://docs.claude.com/en/docs/claude-code/plugins).
-Twenty-one skills in five plugins.
+Twenty-two skills in five plugins.
 
 They grew inside one large audio project and were then rewritten to hold no
 knowledge of it. Every project-specific fact — build command, base branch,
@@ -39,24 +39,26 @@ work), and `README.md`.
 
 ## item-tracker
 
-The same five for a project that tracks work as **one markdown file per item**
+The same loop for a project that tracks work as **one markdown file per item**
 under `items/`, with the `status:` field as the source of truth and `TODO.md`
 generated from it.
 
 `/inititems`, `/whereitems`, `/additem`, `/updateitems`, `/verifyitems`,
 `/planning-items-review`.
 
-**Start with `/inititems`.** It creates the store, installs the two helper
-scripts, and — if the repo already has a hand-edited `TODO.md` — converts each
-entry into an item, asking you how to map the file's status markers rather than
-guessing. It never edits or deletes the original: that gets renamed to
-`TODO.legacy.md` with a banner, so you can compare the two and delete it
-yourself once satisfied.
+**Start with `/inititems`.** It creates the store, installs the helper scripts,
+and — if the repo already has a hand-written TODO file, whatever it is called —
+converts each entry into an item. The conversion is done by a script
+(`init_items.py`), not by hand, so it is deterministic across a long file and
+re-runnable when the marker mapping turns out wrong. It scans first and asks you
+how to map the file's status markers rather than guessing. It never edits or
+deletes the original: that gets renamed with a banner, so you can compare the
+two and delete it yourself once satisfied.
 
 The file format is in
 [item-tracker-plugin/ITEM-STORE-FORMAT.md](item-tracker-plugin/ITEM-STORE-FORMAT.md).
 
-In a repo with no `items/` directory all five skills stop cleanly and point you
+In a repo with no `items/` directory the other five stop cleanly and point you
 at the flat-`TODO.md` versions above, so installing this costs nothing either
 way.
 

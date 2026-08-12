@@ -1,18 +1,18 @@
-# item-store — the two scripts your repo needs
+# item-store — the scripts your repo needs
 
-The five skills in this plugin don't read and write item files themselves. They
-call these two, which live **in your repo**, so the store's format and its
-tooling stay versioned together with the content.
+The skills in this plugin don't read and write item files themselves. They call
+these three, which live **in your repo**, so the store's format and its tooling
+stay versioned together with the content.
 
 ## Install
 
 ```bash
 mkdir -p items/scripts
-cp item-store/itemlib.py item-store/export_todo.py items/scripts/
+cp item-store/{itemlib.py,export_todo.py,init_items.py} items/scripts/
 ```
 
-That's the whole installation. Both are standard-library Python 3, no
-dependencies, 240 lines between them.
+That's the whole installation. All three are standard-library Python 3, no
+dependencies. `/inititems` does this for you.
 
 Then put your items in `items/*.md` — see
 [../ITEM-STORE-FORMAT.md](../ITEM-STORE-FORMAT.md) for the file format — and
@@ -62,3 +62,46 @@ Page titles come from the repo directory's name. Section order follows the
 smallest `legacy_num` in each section, which keeps a migrated store in the order
 people already know, and falls back to alphabetical for a store that never had
 section numbers.
+
+## init_items.py
+
+Converts a hand-written TODO file into a store. The file can be `TODO.md`,
+`TODO.txt`, `NOTES.md` — anything; pass its path. It does not have to be tidy.
+
+```bash
+python3 items/scripts/init_items.py TODO.md --scan      # analyze, write nothing
+python3 items/scripts/init_items.py TODO.md --map "⬜=backlog,🟡=in-progress,✅=done" --dry-run
+python3 items/scripts/init_items.py TODO.md --map "⬜=backlog,🟡=in-progress,✅=done"
+```
+
+`--scan` first, always. It reports the entry boundary it detected, the sections,
+every distinct status marker with counts and an example, and sample entry titles
+with line numbers. You need that before you can write a sensible `--map`, and
+it's where you catch a boundary guess that's wrong.
+
+| Flag | |
+| --- | --- |
+| `--scan` | Analyze and print; write nothing. |
+| `--entry-level` | `header:N`, `bullet`, or `para` — where one item ends and the next begins. Auto-detected; override when the guess is wrong. |
+| `--map` | `MARKER=status,...`. Markers are **never** guessed: the same glyph means different things in different projects. |
+| `--default-status` | For entries with no recognized marker. Default `backlog`. |
+| `--dry-run` | Print one line per item; write nothing. |
+| `--force` | Write into a store that already has items. |
+
+What it handles so you don't have to: sections from the headers above each
+entry, slugs through `slugify` with deterministic disambiguation on collision,
+front matter through `write_item`, markdown inline spans (`**bold**`,
+`` `code` ``) converted to HTML, and lazily wrapped bullet continuations joined
+back onto their bullet rather than shredded into fragments.
+
+Two things it will not do:
+
+- **It never modifies or deletes the source.** Retiring the old TODO is a
+  separate, deliberate step.
+- **It refuses to write into a populated store** without `--force`. Converting
+  twice into one directory merges two readings of the same file, which is very
+  hard to unpick later.
+
+Entry titles become item titles verbatim, and an item's summary is its first
+prose line, or its title when the entry has no prose. It does not invent
+summaries, priorities, or dates.

@@ -39,12 +39,11 @@ should know if it isn't.
 
 ```bash
 mkdir -p items/scripts
-cp "$CLAUDE_PLUGIN_ROOT/item-store/itemlib.py" \
-   "$CLAUDE_PLUGIN_ROOT/item-store/export_todo.py" items/scripts/
+cp "$CLAUDE_PLUGIN_ROOT"/item-store/{itemlib.py,export_todo.py,init_items.py} items/scripts/
 ```
 
 If `$CLAUDE_PLUGIN_ROOT` isn't set — the skill was copied into
-`~/.claude/skills/` by hand rather than installed as a plugin — the two files
+`~/.claude/skills/` by hand rather than installed as a plugin — the three files
 are in the `item-store/` directory of the item-tracker plugin. Find them, or ask
 the user where the plugin lives. **Do not write your own version of them**; the
 skills depend on their exact interface.
@@ -61,31 +60,46 @@ library derives the repo root from its own location.
 
 ## Step 3 — Is there anything to convert?
 
+The file is whatever this project calls it — `TODO.md`, `TODO.txt`, `NOTES.md`,
+`backlog.md`. Look, don't assume, and if the user named a file when invoking the
+skill, use that one:
+
 ```bash
-ls TODO.md TODO.txt 2>/dev/null
+ls TODO* todo* NOTES* notes* BACKLOG* backlog* 2>/dev/null
 ```
 
 **No existing TODO** → skip to step 7. The store starts empty, which is fine;
 the user files into it with `/additem`.
 
-**A TODO exists** → read it in full, then work out its conventions before
-converting anything:
+**More than one candidate** → ask which, or whether to convert several. Each
+conversion run appends to the same store, so a second file needs `--force` and
+should be done as a separate, deliberate run.
+
+**A TODO exists** → let the converter analyze it. **Do not read the file and
+hand-write the items yourself.** On a file of any size that drifts: the first
+twenty items come out one way and the last twenty another, and nothing is
+re-runnable when the marker mapping turns out wrong. The script is
+deterministic and the conversion can simply be redone.
 
 ```bash
-grep -nE '^#+ ' TODO.md          # the section structure
+python3 items/scripts/init_items.py TODO.md --scan
 ```
 
-Note three things, and derive all of them from the file rather than assuming:
+That writes nothing. It reports:
 
-- **The section structure.** Headers become the `section:` field. Deeply nested
-  headers usually collapse: a top-level header is the section, and entries under
-  it are items.
-- **What one item looks like.** A bullet? A third-level header with prose under
-  it? This decides where one item ends and the next begins, and getting it wrong
-  produces either one enormous item or a hundred fragments.
-- **The status markers in use.** Checkboxes, emoji, inline tags like `[FIXED]`,
-  or position under a "landed" heading. Collect the distinct ones with their
-  counts.
+- **the entry boundary it detected** — `header:3`, `bullet`, or `para`, meaning
+  where one item ends and the next begins. Override with `--entry-level` if it
+  guessed wrong.
+- **the sections it found**, from the headers above the entries, with counts
+- **every distinct status marker**, with counts and an example of each
+- **sample entry titles with line numbers** — read these. In a file with no
+  headers the file's own title line or a legend can look exactly like a task,
+  and this is where you catch that.
+
+Read the scan out to the user before going further. If the entry count is
+obviously wrong — three items from a 900-line file, or 400 from a 50-line one —
+the boundary is wrong. Re-scan with an explicit `--entry-level` rather than
+converting and hoping.
 
 ## Step 4 — Ask about the marker mapping (do NOT guess)
 
@@ -95,46 +109,54 @@ that cannot be derived: an hourglass might mean "in progress" in one project and
 "waiting for the user to sign off" in another, and getting it backwards
 mislabels the whole store on day one.
 
-Show the user the distinct markers you found, with counts and one example line
-each, and **ask** with AskUserQuestion. Propose a mapping — an unticked checkbox
-is almost certainly `backlog`, a tick almost certainly `done` — and let them
-correct it. If a marker is genuinely ambiguous even after asking, map it to
-`backlog` and list those items in the report so they're easy to find.
+Show the user the markers the scan found, with counts and the example of each,
+and **ask** with AskUserQuestion. Propose a mapping — an unticked checkbox is
+almost certainly `backlog`, a tick almost certainly `done` — and let them
+correct it. The target vocabulary is `backlog`, `needs-spec`, `in-progress`,
+`pending-review`, `done`.
 
-Ask about priority in the same pass, if the file encodes it. If it doesn't,
-every item gets `priority: 3` — say so rather than inventing a ranking from
-where things happen to sit in the file.
+The trap worth naming to the user: a marker meaning "I think this is finished,
+waiting for you to confirm" maps to **`pending-review`**, not `done`. Projects
+that use an hourglass or a "pending" tag almost always mean the former, and
+mapping it to `done` marks work as signed-off that nobody has looked at.
 
-## Step 5 — Convert, through itemlib
+Priority: if the file encodes one, say so and ask whether to carry it. If it
+doesn't, every item gets `priority: 3` — say that rather than inventing a
+ranking from where things happen to sit in the file.
 
-Create the items **through `itemlib.write_item`** so slugs, quoting and
-front-matter layout are right by construction. Get today's date from
-`date +%Y-%m-%d`.
+## Step 5 — Convert, with a dry run first
 
-Per entry:
+```bash
+python3 items/scripts/init_items.py TODO.md \
+    --map "⬜=backlog,🟡=in-progress,✅=done" --dry-run
+```
 
-- **`title`** — the entry's own title, cleaned up but not reworded. Keep the
-  user's nouns. Roughly 60 characters; if the entry's first line is a paragraph,
-  condense to a title and keep the full text in the body.
-- **`id`** — `itemlib.slugify(title)`. **Check for collisions** as you go: two
-  entries called "Fix the crash" in different sections produce the same slug and
-  the second would silently overwrite the first. On a collision, disambiguate
-  with a word from the section and note it in the report.
-- **`section`** — the header it lived under. `Uncategorized` if it had none.
-- **`status`** — from the mapping agreed in step 4.
-- **`priority`** — from the file if it encodes it, else 3.
-- **`created`** — a date the entry itself states, if it has one; otherwise
-  today. Don't fabricate a plausible-looking older date.
-- **`updated`** — today.
-- **`tests`** — test filenames the entry names, if any; else empty.
-- **Body** — HTML. The first `<p>` is the one-line summary; everything else
-  follows as detail. **Carry the entry's full text across.** Losing detail in
-  conversion is the failure mode that matters: the item is the only copy people
-  will read afterwards. Preserve file references, dates, decisions and
-  sub-checkboxes (`[x]` / `[ ]` / `[~]` as literal text inside `<li>`).
+The dry run prints one line per item — status, id, title — and writes nothing.
+Scan it for the two things that are cheap to fix now and awkward later: items
+whose title is obviously a fragment (the boundary was wrong), and statuses that
+look wrong in bulk (the mapping was wrong). Fix and re-run the dry run until it
+reads correctly, then drop `--dry-run`.
 
-Work in batches and keep count. On a large TODO this is the slow part; say how
-many you've done if the user is watching.
+The script handles the mechanical parts so they're right on every item rather
+than the first twenty: slugs through `itemlib.slugify`, deterministic
+disambiguation when two entries produce the same slug, front matter through
+`itemlib.write_item`, markdown inline spans converted to HTML, and lazily
+wrapped bullet continuations joined back onto their bullet instead of being
+shredded into fragments.
+
+It reports any marker it saw that your `--map` didn't cover, and what those
+entries fell back to. Don't ignore that line — it means the scan and the mapping
+disagreed.
+
+**Summaries.** The first `<p>` of each item is its one-line summary. The script
+promotes the entry's first prose line when there is one, and otherwise repeats
+the title, because inventing a summary is worse than a dull one. Expect a fair
+number of items whose summary equals their title; `/updateitems` sharpens them
+as it touches them.
+
+If `--entry-level para` was used — a plain text file with no headers — check the
+first few items for the file's own title line masquerading as a task, and delete
+it if present.
 
 ## Step 6 — Retire the source, don't delete it
 
@@ -197,8 +219,9 @@ should look first.
 
 - Don't run this in a repo that already has a store.
 - Don't guess the status-marker mapping; ask.
+- Don't hand-write the item files. Run the converter — it is deterministic and
+  re-runnable, which hand-conversion of a long file is not.
 - Don't delete or edit the source TODO; rename it and band it.
-- Don't hand-roll slugs or front matter; go through `itemlib`.
 - Don't write your own itemlib; copy the one that ships with the plugin.
 - Don't drop detail to make items tidy. An item is the only copy that gets read
   afterwards.
