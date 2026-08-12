@@ -84,8 +84,18 @@ Cross-reference another item with `[[its-id]]`.
 ## What the repo must provide
 
 The skills call into two helper scripts that live in the repo, at
-`items/scripts/`. They are deliberately repo-side rather than bundled here, so
+`items/scripts/`. They are repo-side rather than loaded from the plugin so that
 the store's format and its tooling stay versioned together with the content.
+
+**Working copies of both are included** — see
+[item-store/](item-store/). Installing them is one command:
+
+```bash
+mkdir -p items/scripts && cp item-store/*.py items/scripts/
+```
+
+Standard-library Python 3, no dependencies, 240 lines between them. The
+interface they implement, should you want to write your own instead:
 
 ### `items/scripts/itemlib.py`
 
@@ -113,6 +123,12 @@ isn't there, pointing you at the flat-`TODO.md` equivalents in the
 **project-docs** plugin. So installing this plugin costs nothing in a repo that
 doesn't use the format.
 
-To adopt it, implement the two scripts above against this contract — the library
-is roughly eighty lines of Python, since the front matter is a deliberately tiny
-YAML subset — and put your existing items in `items/*.md`.
+To adopt it:
+
+```bash
+mkdir -p items/scripts && cp item-store/*.py items/scripts/
+```
+
+Then write your items as `items/<slug>.md` in the format above, and run
+`python3 items/scripts/export_todo.py` to generate the views. `/additem` will
+create correctly-formed items for you from that point on.

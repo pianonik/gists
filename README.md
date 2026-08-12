@@ -42,9 +42,17 @@ A working loop for a repo whose state lives in three files at the root:
 
 The same loop for a repo that tracks work as **one markdown file per item**
 under `items/`, where each file's `status:` field is the open/done state and
-`TODO.md` / `DONE.md` are generated views. See
-[item-tracker-plugin/ITEM-STORE-FORMAT.md](item-tracker-plugin/ITEM-STORE-FORMAT.md)
-for the format and the two helper scripts a repo must provide.
+`TODO.md` / `DONE.md` are generated views.
+
+Setting it up is one command — the two helper scripts the store needs are
+included:
+
+```bash
+mkdir -p items/scripts && cp item-store/*.py items/scripts/
+```
+
+See [ITEM-STORE-FORMAT.md](item-tracker-plugin/ITEM-STORE-FORMAT.md) for the
+file format.
 
 `/whereitems`, `/additem`, `/updateitems`, `/updateitemplan`,
 `/planning-items-review` — the item-store counterparts of the five above. Each

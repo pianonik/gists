@@ -4,9 +4,18 @@ Five skills for a project that tracks work as **one markdown file per item**
 under `items/`, where each file's `status:` field is the source of truth and
 `TODO.md` / `DONE.md` are generated views rather than hand-edited files.
 
-Read [ITEM-STORE-FORMAT.md](ITEM-STORE-FORMAT.md) first — it defines the file
-format and the two helper scripts the repo must provide
-(`items/scripts/itemlib.py` and `items/scripts/export_todo.py`).
+## Setting it up
+
+The skills call two helper scripts that live in your repo. Working copies are
+included here, so this is the whole installation:
+
+```bash
+mkdir -p items/scripts && cp item-store/*.py items/scripts/
+```
+
+Standard-library Python 3, no dependencies. See
+[item-store/README.md](item-store/README.md) for what they do, and
+[ITEM-STORE-FORMAT.md](ITEM-STORE-FORMAT.md) for the item file format.
 
 **In a repo without an item store, all five skills stop cleanly** and point you
 at the flat-`TODO.md` equivalents in the **project-docs** plugin. Installing
