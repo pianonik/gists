@@ -1,104 +1,141 @@
 # gists
 
-Claude Code skills shared from Nick Porcaro's setup, packaged as a
+Claude Code skills, packaged as a
 [plugin marketplace](https://docs.claude.com/en/docs/claude-code/plugins).
+Twenty-one skills in five plugins.
 
-These grew inside one large audio project and were then rewritten to hold no
-knowledge of it. Every project-specific fact — build command, branch name,
-commit-message style, tracker layout, test runner — is now either detected from
-the repo at run time or asked for once. Nothing is guessed. A skill that cannot
-work out what it needs stops and says exactly what the repo is missing.
+They grew inside one large audio project and were then rewritten to hold no
+knowledge of it. Every project-specific fact — build command, base branch,
+commit-message style, tracker layout, test runner — is either detected from the
+repo at run time or asked for once. Nothing is guessed. A skill that cannot work
+out what it needs stops and says what the repo is missing.
 
-## Install
+## Installing
 
 ```
 /plugin marketplace add pianonik/gists
 /plugin install project-docs@pianonik-gists
 ```
 
-Then `/wherex`, `/updatex`, and so on. `/plugin` with no arguments lists what is
-installed.
+Install whichever plugins you want; they don't depend on each other. `/plugin`
+with no arguments shows what you have.
 
 To install by hand instead, copy any `*/skills/<name>/` directory into
 `~/.claude/skills/`.
 
-## The plugins
+## project-docs
 
-### project-docs
-
-A working loop for a repo whose state lives in three files at the root:
-`history.md` (a running narrative log, newest first), `TODO.md` (open work), and
-`README.md`.
+A working loop for a project that keeps its state in three files at the repo
+root: `history.md` (a running narrative log, newest first), `TODO.md` (open
+work), and `README.md`.
 
 | Skill | Does |
 | --- | --- |
-| `/wherex` | Reads all three, tells you where the project stands. Read-only. |
-| `/updatex` | Writes the current conversation back into all three, then trims `history.md` to a rolling window (older entries move to `history-archive.md`, never deleted). |
-| `/addtodo` | Drops one new item into `TODO.md`, routed to the section it actually belongs in. |
-| `/planning-review` | Audits the whole project: docs against code, dead code, stale items, what is really built versus only planned. |
-| `/updateplan` | Re-derives a `TODO-parallel.md` structural plan from `TODO.md`, verifying every status claim against the code and git log first. |
+| `/wherex` | Reads all three and says where things stand. Read-only. |
+| `/updatex` | Writes the session back into them, then trims the history to a rolling window — old entries move to `history-archive.md` rather than being deleted. |
+| `/addtodo` | Files one item, routed to the section it belongs in. |
+| `/planning-review` | Audits the planning docs against the actual code: what is built and verified versus only planned, doc drift, dead code by confidence, the open work buried among finished items. |
+| `/updateplan` | Regenerates a structural `TODO-parallel.md` after verifying every status claim against the code and git log. Work that verifiably shipped moves to `DONE.md`; anything ambiguous is reported rather than moved. |
 
-### item-tracker
+## item-tracker
 
-The same loop for a repo that tracks work as **one markdown file per item**
-under `items/`, where each file's `status:` field is the open/done state and
-`TODO.md` / `DONE.md` are generated views.
+The same five for a project that tracks work as **one markdown file per item**
+under `items/`, with the `status:` field as the source of truth and `TODO.md`
+generated from it.
 
-Setting it up is one command — the two helper scripts the store needs are
-included:
+`/whereitems`, `/additem`, `/updateitems`, `/updateitemplan`,
+`/planning-items-review`.
+
+The skills call two helper scripts that live in your repo. Working copies are
+included, so setup is one command:
 
 ```bash
 mkdir -p items/scripts && cp item-store/*.py items/scripts/
 ```
 
-See [ITEM-STORE-FORMAT.md](item-tracker-plugin/ITEM-STORE-FORMAT.md) for the
-file format.
+Standard-library Python 3, no dependencies, 240 lines between them. The file
+format is in
+[item-tracker-plugin/ITEM-STORE-FORMAT.md](item-tracker-plugin/ITEM-STORE-FORMAT.md).
 
-`/whereitems`, `/additem`, `/updateitems`, `/updateitemplan`,
-`/planning-items-review` — the item-store counterparts of the five above. Each
-one checks for the store first and sends you to the flat-`TODO.md` sibling if
-there isn't one.
+In a repo with no `items/` directory all five skills stop cleanly and point you
+at the flat-`TODO.md` versions above, so installing this costs nothing either
+way.
 
-### worktree-batch
+## worktree-batch
 
-Git worktrees as disposable workspaces, and batches of unattended jobs that
-accumulate on one branch.
+Git worktrees as disposable workspaces, and batches of unattended jobs that pile
+their work onto a single branch.
 
-| Skill | Does |
-| --- | --- |
-| `/mkwt <name>` | Creates a worktree at `<repo>/.claude/worktrees/<name>` on branch `worktree-<name>`, and moves the session into it. |
-| `/wtmerge` | Commits the worktree branch locally, merges it into the base branch and pushes the base branch, then merges the base branch back down. |
-| `/fwtmerge` | The same, forward only — no merge back down. |
-| `/projectreview` | Reviews recent commits across one or more repos against the tracker, then writes (does not run) a script that sets up one worktree per follow-up job, each with a prompt a fresh session can act on cold. |
-| `/sequencework` | Reviews the project, gets a small number of jobs approved one at a time, then runs them in sequence — each in its own worktree, each fast-forward merged into a single `pending` branch. Resumable after a kill. |
+`/mkwt <name>` makes a worktree at `<repo>/.claude/worktrees/<name>` on branch
+`worktree-<name>` and moves the session into it. `/wtmerge` and `/fwtmerge` land
+the work: commit locally, merge into the base branch inside the base branch's
+own worktree, push the base branch. The feature branch is never pushed — only
+the base branch is, so there is no remote-branch bookkeeping for something that
+lives two days.
 
-### iterate
+**`/sequencework`** is the ambitious one. It asks how many jobs you want and
+what to pick them for, reviews the project, carves the findings into that many
+jobs, and gets each one approved individually with a suggested model. Then it
+runs them in sequence: each job cut from a `pending` branch, run headless,
+fast-forward merged back into pending, its worktree deleted. One build at the
+end with everything in it. You get one branch to review.
 
-Build → test → fix loops that keep going until the change actually works, rather
-than stopping when it compiles. Testing goes through the project's own
-automation; screenshots go through the project's own capture path, never through
-desktop screen-scraping.
+It records progress in a state file, so if the machine reboots mid-batch,
+`run.sh --resume` picks up inside the interrupted job's surviving worktree
+rather than starting over.
 
-`/itrm` (macOS), `/itri` (connected iOS device), `/itrs` (iOS Simulator),
-`/itrp` (macOS including audio-plugin formats).
+**`/projectreview`** is the lighter half. It reviews recent commits against the
+tracker and writes — but does not run — a script that sets up one worktree per
+follow-up job, each with a prompt written to stand alone in a fresh session. You
+run them when you feel like it, or never.
 
-These read one declared Makefile target, `itr-info`, for the commands they need.
-See [iterate-plugin/README.md](iterate-plugin/README.md) — it is about eight
-lines to add to a repo, and the skill offers to write them for you.
+## iterate
 
-### dev-utils
+`/itrm` macOS, `/itri` connected iOS device, `/itrs` iOS Simulator, `/itrp`
+macOS including audio-plugin formats.
 
-| Skill | Does |
-| --- | --- |
-| `/commit` | Commits the session's work, matching whatever commit-subject convention the repo's own log shows. Uses the repo's commit wrapper script if it has one. |
-| `/diskusage` | Surveys a Mac's disk and recommends what to delete, compress, or make online-only, in safety tiers. Never deletes without approval, and reads a user-supplied list of things that must not be touched. |
+They loop build, test, fix and keep going until the change works, rather than
+stopping when it compiles. They refuse to drive an application with AppleScript
+and refuse to screenshot with `screencapture`; verification goes through the
+project's own test automation.
 
-## Conventions these assume
+They need one target in your Makefile. `itr-info` prints `key=value` lines
+saying what the build command is, how to launch the app so a script can drive
+it, where the tests live, and so on. The full list and a copy-paste example are
+in [iterate-plugin/README.md](iterate-plugin/README.md). If the target is
+missing the skill asks once and offers to write it. It will not guess a build
+command.
 
-[CONVENTIONS.md](CONVENTIONS.md) states the working habits the skills were built
-around — fail loud rather than degrade, newest-first history files, local-only
-worktree branches, never commit on the user's behalf. Worth a read before
-adopting them; several skills refer to it.
+## dev-utils
+
+`/commit` writes the message from the conversation rather than from reading the
+diff, matches whatever commit-subject convention your log already shows, and
+uses your repo's commit wrapper if it has one.
+
+`/diskusage` surveys a Mac's disk in safety tiers and never deletes without
+approval. Give it a keep-out list at `~/.claude/disk-keepout.md` and it will not
+recommend touching anything on it.
+
+## Two things worth knowing
+
+**Nothing here assumes a particular project.** Base branch, tracker, build
+command, commit convention — all detected from the repo or asked for once. Where
+a skill cannot work something out it stops and says what is missing rather than
+falling back to a default. That is deliberate: the alternative is an unattended
+session confidently building the wrong target at three in the morning.
+
+**[CONVENTIONS.md](CONVENTIONS.md)** states the working habits the skills were
+built around — newest-first history files, local-only worktree branches, no
+skill committing on your behalf, no caching without a measurement. You do not
+have to adopt all of it, but a few are load-bearing and the skills say which.
+
+## Contributing
+
+Fork it and change what you like. If a skill assumes something it should have
+detected, that is a bug worth reporting — open an issue saying which skill and
+what it assumed.
+
+[MAINTAINING.md](MAINTAINING.md) covers how this repo is edited and released.
 
 ## License
 
