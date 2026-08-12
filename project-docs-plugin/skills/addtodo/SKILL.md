@@ -95,8 +95,8 @@ you must match them rather than impose your own:
 Tell the user exactly where it landed (section name) and show the lines you
 added. Offer to move it if the placement isn't right.
 
-**Do not commit.** Touch only `TODO.md` — not `DONE.md`, not `TODO-parallel.md`,
-and not `history.md` or `README.md` (recording those is `/updatex`'s job).
+**Do not commit.** Touch only `TODO.md` — not `DONE.md`, and not `history.md` or
+`README.md` (recording those is `/updatex`'s job).
 
 ## Don't
 

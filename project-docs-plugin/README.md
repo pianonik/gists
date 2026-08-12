@@ -9,10 +9,8 @@ repo root.
 | `TODO.md` | The open work, grouped into sections. Hand-edited. |
 | `README.md` | Architecture and conventions. |
 
-Two more appear once you use the skills: `history-archive.md` (where trimmed
-history entries move to — they are never deleted) and, if you use
-`/updateplan`, `TODO-parallel.md` (the structural plan: which work can proceed
-independently, in what order, and how it gets integrated).
+One more appears once you use the skills: `history-archive.md`, where trimmed
+history entries move to. They are never deleted.
 
 Nothing here requires the files to exist. Each skill checks, says which ones are
 missing, and continues with the rest rather than inventing them.
@@ -48,10 +46,15 @@ and reports: what is built and verified versus only planned, doc drift, dead and
 suspicious code grouped by confidence, and the genuinely open work currently
 buried among finished items. Read-only unless you explicitly ask for a safe pass.
 
-**`/updateplan`** — regenerates `TODO-parallel.md` from `TODO.md`, but only after
-independently verifying each status claim against the code and git history. Work
-that has verifiably shipped moves to `DONE.md`; anything ambiguous is reported
-rather than moved. Every move is listed at the end so you can reverse it.
+**`/verifytodo`** — finds out which status markers are lying. It checks each
+against the code and git history, moves work that has verifiably shipped into
+`DONE.md`, brings back any `DONE.md` claim it can't find an implementation for,
+and reports anything ambiguous rather than moving it. Every move is listed at
+the end so you can reverse it.
+
+This is the one that keeps a `TODO.md` from turning into a changelog with the
+real work buried in it. `/planning-review` reports the same drift but never
+writes; this one corrects it.
 
 ## If your project tracks work as one file per item
 

@@ -204,10 +204,15 @@ none remain" is worth a line — it stops the next round re-investigating.
 
 ### 7. Carve the findings into worktrees, and generate the script
 
-The point is a set of jobs the user can open **whenever they like** — one at a
-time, three at once, or never. Don't rank them by whether they can run "in
-parallel"; worktrees already make that a non-question. Carve by **what makes one
-coherent job**:
+The point is a set of jobs the user can open **whenever they like**, and the
+recommendation is **one at a time**. Jobs merge back into the same base branch,
+so two running at once means resolving their overlap by hand at merge time, and
+the second job never sees the first one's work. `/sequencework` exists to run a
+queue like this properly: each job cut from the previous one's result, merged
+before the next starts.
+
+So don't carve for parallelism, and don't rank jobs by whether they could run
+simultaneously. Carve by **what makes one coherent job**:
 
 - One worktree per *theme a single session can hold in its head* — a subsystem,
   a file cluster, one round's follow-ups. A job needing two unrelated mental
@@ -344,7 +349,7 @@ one ended.
   Generating is the deliverable; running is the user's call.
 - Don't edit the tracker, `history.md`, or commit anything.
 - Don't poll a background sleep or schedule extra wakeups.
-- Don't rank jobs by parallelizability or invent "streams" — carve by coherence
-  and state the real ordering constraints.
+- Don't carve for parallelism or invent "streams" — carve by coherence, state
+  the real ordering constraints, and recommend running them in sequence.
 - Don't pad the findings. If the window is clean, say so in three lines and
   generate no worktrees.

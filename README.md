@@ -35,7 +35,7 @@ work), and `README.md`.
 | `/updatex` | Writes the session back into them, then trims the history to a rolling window — old entries move to `history-archive.md` rather than being deleted. |
 | `/addtodo` | Files one item, routed to the section it belongs in. |
 | `/planning-review` | Audits the planning docs against the actual code: what is built and verified versus only planned, doc drift, dead code by confidence, the open work buried among finished items. |
-| `/updateplan` | Regenerates a structural `TODO-parallel.md` after verifying every status claim against the code and git log. Work that verifiably shipped moves to `DONE.md`; anything ambiguous is reported rather than moved. |
+| `/verifytodo` | Checks the status markers against the real code and git log rather than trusting them. Work that verifiably shipped moves to `DONE.md`; anything ambiguous is reported rather than moved, and every move is listed so you can reverse it. |
 
 ## item-tracker
 
@@ -43,18 +43,17 @@ The same five for a project that tracks work as **one markdown file per item**
 under `items/`, with the `status:` field as the source of truth and `TODO.md`
 generated from it.
 
-`/whereitems`, `/additem`, `/updateitems`, `/updateitemplan`,
+`/inititems`, `/whereitems`, `/additem`, `/updateitems`, `/verifyitems`,
 `/planning-items-review`.
 
-The skills call two helper scripts that live in your repo. Working copies are
-included, so setup is one command:
+**Start with `/inititems`.** It creates the store, installs the two helper
+scripts, and — if the repo already has a hand-edited `TODO.md` — converts each
+entry into an item, asking you how to map the file's status markers rather than
+guessing. It never edits or deletes the original: that gets renamed to
+`TODO.legacy.md` with a banner, so you can compare the two and delete it
+yourself once satisfied.
 
-```bash
-mkdir -p items/scripts && cp item-store/*.py items/scripts/
-```
-
-Standard-library Python 3, no dependencies, 240 lines between them. The file
-format is in
+The file format is in
 [item-tracker-plugin/ITEM-STORE-FORMAT.md](item-tracker-plugin/ITEM-STORE-FORMAT.md).
 
 In a repo with no `items/` directory all five skills stop cleanly and point you

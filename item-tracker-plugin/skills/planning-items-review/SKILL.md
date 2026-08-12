@@ -58,7 +58,7 @@ one.
    ```
 
 3. `history.md` — newest at top. Often huge — do NOT read it all; sample the head.
-4. `ls docs/` and any focus docs the user named, including `TODO-parallel.md`.
+4. `ls docs/` and any focus docs the user named.
 5. `git log --oneline -20`, `git status`, `git branch -a`. Feature branches are
    often local-only and short-lived, so absent from `git branch -a` may mean
    merged-and-deleted, not lost.
@@ -131,7 +131,7 @@ One scannable report. The user may be reading it later, tired.
    file references.
 4. **Status drift** — open items that look secretly finished, done items that
    look incomplete, `pending-review` awaiting sign-off. Report the drift; do NOT
-   flip any `status:` field — that's `/updateitemplan`'s job. Suggest it if the
+   flip any `status:` field — that's `/verifyitems`' job. Suggest it if the
    drift is broad.
 5. **Inconsistencies and doc drift**, including stale exports.
 6. **Suspicious or dead code**, grouped by confidence.
@@ -156,7 +156,7 @@ concrete findings, not their process.
 
 - Don't edit source, docs or items as part of the review — it's read-only until
   the user opts into a pass.
-- Don't flip any item's `status:` — report drift; `/updateitemplan` owns flips.
+- Don't flip any item's `status:` — report drift; `/verifyitems` owns flips.
 - Don't run `export_todo.py` or hand-edit `TODO.md` / `DONE.md` — they're
   generated views, and this skill is read-only.
 - Don't trust a `status:` field or a doc's "verified" claim at face value.

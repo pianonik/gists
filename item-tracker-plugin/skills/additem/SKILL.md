@@ -113,7 +113,7 @@ Tell the user the item's **id**, **section** and **priority**, and show the
 summary paragraph. Offer to re-route or reword if the placement isn't right.
 
 **Do not commit.** Touch only the new `items/<id>.md` and the regenerated
-exports — not `history.md`, not `README.md`, not `TODO-parallel.md`. Recording
+exports — not `history.md`, not `README.md`. Recording
 those is `/updateitems`' job.
 
 ## Don't
