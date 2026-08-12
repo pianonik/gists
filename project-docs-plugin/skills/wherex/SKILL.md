@@ -1,6 +1,6 @@
 ---
 name: wherex
-description: Catch up on the current project's state by reading history.md, README.md, and TODO.md (in that order) from the current working directory, then summarize where we are. Use when the user says "wherex", "/wherex", or otherwise asks to be brought up to speed on the project.
+description: Catch up on the current project's state by reading history.md, README.md, and TODO.md (in that order) from the current working directory, then summarize where we are. Use when the user says "wherex", "/wherex", or otherwise asks to be brought up to speed on the project. ONLY for a repo whose tracker is a hand-edited TODO.md: if the repo has an items/ store (items/*.md with items/scripts/itemlib.py), stop and use /whereitems instead, even when a TODO.md also exists — a stale hand-authored TODO.md often sits alongside a live item store.
 tools: Read, Bash
 ---
 
@@ -8,6 +8,24 @@ tools: Read, Bash
 
 Bring the user (and yourself) up to speed on the current project by reading the
 three canonical context files and summarizing where things stand.
+
+## Step 0 — check for an item store FIRST (mandatory)
+
+Before reading `TODO.md`, before anything else:
+
+```bash
+ls items/scripts/itemlib.py 2>/dev/null; ls items/*.md 2>/dev/null | head -3
+```
+
+If either produces output, this project's tracker is the **item store**, not
+`TODO.md`. **Stop and tell the user to run `/whereitems` instead.**
+
+This check is unconditional and comes first. It is NOT conditional on `TODO.md`
+being missing — a repo can have both: a live `items/` store *and* a stale
+hand-authored `TODO.md` still sitting at the repo root from before the store
+existed, large and entirely plausible-looking. Reading it produces a confident
+summary of a work list nobody has maintained for months. **The presence of
+`TODO.md` proves nothing. The presence of `items/` is decisive.**
 
 ## What to read
 
@@ -22,8 +40,7 @@ elsewhere or guess — only these three files, only from the current working
 directory.
 
 If **none** of the three exists, say so plainly and stop: this project does not
-use the convention the skill is for. If there is an `items/` directory with one
-markdown file per work item, suggest `/whereitems` instead.
+use the convention the skill is for.
 
 ## How to read them
 

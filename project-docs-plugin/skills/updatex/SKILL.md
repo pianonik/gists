@@ -1,6 +1,6 @@
 ---
 name: updatex
-description: Update history.md, TODO.md, and README.md in the current working directory to reflect the work done in the current conversation, then trim history.md to a rolling window. Use when the user says "updatex", "/updatex", or otherwise asks to record the session into those files.
+description: Update history.md, TODO.md, and README.md in the current working directory to reflect the work done in the current conversation, then trim history.md to a rolling window. Use when the user says "updatex", "/updatex", or otherwise asks to record the session into those files. ONLY for a repo whose tracker is a hand-edited TODO.md: if the repo has an items/ store (items/*.md with items/scripts/itemlib.py), stop and use /updateitems instead, even when a TODO.md also exists — a stale hand-authored TODO.md often sits alongside a live item store.
 tools: Read, Edit, Write, Bash
 ---
 
@@ -9,6 +9,29 @@ tools: Read, Edit, Write, Bash
 Record the work done in the current conversation into the three canonical
 project files. Mirror image of `/wherex` — that one *reads* history.md /
 README.md / TODO.md to orient; this one *writes* them to record.
+
+## Step 0 — check for an item store FIRST (mandatory)
+
+Before touching `TODO.md`, before anything else:
+
+```bash
+ls items/scripts/itemlib.py 2>/dev/null; ls items/*.md 2>/dev/null | head -3
+```
+
+If either produces output, this project's tracker is the **item store**, not
+`TODO.md`. **Stop and tell the user to run `/updateitems` instead.** Do not edit
+`TODO.md`.
+
+This check is unconditional and comes first. It is NOT conditional on `TODO.md`
+being missing — a repo can have both: a live `items/` store *and* a stale
+hand-authored `TODO.md` still sitting at the repo root from before the store
+existed, large and entirely plausible-looking. Writing this session into that
+file records it somewhere nobody reads, and the real tracker never learns the
+work happened. **The presence of `TODO.md` proves nothing. The presence of
+`items/` is decisive.**
+
+The same applies to a `TODO.md` that is *generated* from the store: it carries a
+"do not hand-edit" line, and any edit is destroyed by the next export.
 
 ## What to update
 
@@ -22,8 +45,7 @@ In the current working directory, in this exact order:
 
 If any of these is missing, note it and continue with the rest. Do NOT create
 one from scratch unless the user explicitly asks — the project may legitimately
-not have it. If the project tracks work as one file per item under `items/`, use
-`/updateitems` instead.
+not have it.
 
 ## Gathering facts (do this BEFORE writing)
 

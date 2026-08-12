@@ -1,6 +1,6 @@
 ---
 name: updateplan
-description: Re-derive TODO-parallel.md from TODO.md, double-checking every status claim against the actual code and git log rather than trusting the markers. Keeps the plan structural — independent streams, branches, ordering, integration mechanism, and a thin "mergeable or blocked right now" snapshot — and lets TODO.md own per-item status. Use when the user says "updateplan", "/updateplan", or asks to refresh or regenerate the parallel plan from the TODO.
+description: Re-derive TODO-parallel.md from TODO.md, double-checking every status claim against the actual code and git log rather than trusting the markers. Keeps the plan structural — independent streams, branches, ordering, integration mechanism, and a thin "mergeable or blocked right now" snapshot — and lets TODO.md own per-item status. Use when the user says "updateplan", "/updateplan", or asks to refresh or regenerate the parallel plan from the TODO. ONLY for a repo whose tracker is a hand-edited TODO.md: if the repo has an items/ store (items/*.md with items/scripts/itemlib.py), stop and use /updateitemplan instead, even when a TODO.md also exists — a stale hand-authored TODO.md often sits alongside a live item store.
 tools: Read, Bash, Grep, Glob, Edit, Write, Agent
 ---
 
@@ -11,8 +11,25 @@ branches, ordering, integration mechanism) from `TODO.md` (the **what** — the
 open items and their status markers), **after independently verifying that
 status against the real code and git history.**
 
-If the project tracks work as one markdown file per item under `items/`, use
-`/updateitemplan` instead.
+## Step 0 — check for an item store FIRST (mandatory)
+
+Before reading `TODO.md`, before anything else:
+
+```bash
+ls items/scripts/itemlib.py 2>/dev/null; ls items/*.md 2>/dev/null | head -3
+```
+
+If either produces output, this project's tracker is the **item store**, not
+`TODO.md`. **Stop and tell the user to run `/updateitemplan` instead.** Do not
+edit `TODO.md` or `DONE.md`.
+
+This check is unconditional and comes first. It is NOT conditional on `TODO.md`
+being missing — a repo can have both: a live `items/` store *and* a stale
+hand-authored `TODO.md` and `DONE.md` still sitting at the repo root from before
+the store existed, large and entirely plausible-looking. Moving sections between
+those two files rearranges a document nobody reads while the real statuses go
+untouched. **The presence of `TODO.md` proves nothing. The presence of `items/`
+is decisive.**
 
 ## The division of labor
 

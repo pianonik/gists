@@ -1,6 +1,6 @@
 ---
 name: addtodo
-description: Add a quick to-do item to the project's TODO.md (the repo-root TODO.md in the current working directory), auto-routed to the most relevant existing section (or a new subsection if nothing fits). The item is whatever the user types after /addtodo. Use when the user says "/addtodo <text>", "addtodo", or asks to drop a new task or idea into TODO.md.
+description: Add a quick to-do item to the project's TODO.md (the repo-root TODO.md in the current working directory), auto-routed to the most relevant existing section (or a new subsection if nothing fits). The item is whatever the user types after /addtodo. Use when the user says "/addtodo <text>", "addtodo", or asks to drop a new task or idea into TODO.md. ONLY for a repo whose tracker is a hand-edited TODO.md: if the repo has an items/ store (items/*.md with items/scripts/itemlib.py), stop and use /additem instead, even when a TODO.md also exists — a stale hand-authored TODO.md often sits alongside a live item store.
 tools: Read, Grep, Bash, Edit
 ---
 
@@ -11,12 +11,30 @@ insert it into `TODO.md` **where it makes sense** — under the existing section
 whose topic it matches, or as a new subsection if nothing fits. This is fast
 capture: place it, report where it landed, don't make the user choose.
 
-## First: find the file
+## Step 0 — check for an item store FIRST (mandatory)
+
+Before touching `TODO.md`, before anything else:
+
+```bash
+ls items/scripts/itemlib.py 2>/dev/null; ls items/*.md 2>/dev/null | head -3
+```
+
+If either produces output, this project's tracker is the **item store**, not
+`TODO.md`. **Stop and tell the user to run `/additem` instead.** Do not edit
+`TODO.md`.
+
+This check is unconditional and comes first. It is NOT conditional on `TODO.md`
+being missing — a repo can have both: a live `items/` store *and* a stale
+hand-authored `TODO.md` still sitting at the repo root from before the store
+existed, large and entirely plausible-looking. Filing an item into that file
+puts it where nobody will look for it. **The presence of `TODO.md` proves
+nothing. The presence of `items/` is decisive.**
+
+## Then: find the file
 
 `TODO.md` lives at the repo root, which is the current working directory. If
 there is **no `TODO.md` in the cwd**, say so and stop — don't create one
-unprompted. If the project instead tracks work as one markdown file per item
-under `items/`, point the user at `/additem`.
+unprompted.
 
 ## Steps
 

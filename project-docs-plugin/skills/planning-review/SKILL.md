@@ -1,6 +1,6 @@
 ---
 name: planning-review
-description: Review the whole state of a project — TODO.md, history.md, README.md, docs/*, and the source — to surface inconsistencies, suspicious or dead code, stale TODO items, and the true state of in-flight work versus its planning docs. Use when the user says "planning-review", "/planning-review", or asks to review the state of everything, audit the project, or check what is stale or dead before deciding what to work on next.
+description: Review the whole state of a project — TODO.md, history.md, README.md, docs/*, and the source — to surface inconsistencies, suspicious or dead code, stale TODO items, and the true state of in-flight work versus its planning docs. Use when the user says "planning-review", "/planning-review", or asks to review the state of everything, audit the project, or check what is stale or dead before deciding what to work on next. ONLY for a repo whose tracker is a hand-edited TODO.md: if the repo has an items/ store (items/*.md with items/scripts/itemlib.py), stop and use /planning-items-review instead, even when a TODO.md also exists — a stale hand-authored TODO.md often sits alongside a live item store.
 tools: Read, Bash, Grep, Glob, Agent, Write
 ---
 
@@ -12,8 +12,24 @@ planned*, finding the drift between docs and code, and flagging stale TODO items
 and dead code — so they can decide what to work on next. This is a review, not a
 build: do not change behavior or commit anything unless the user explicitly asks.
 
-If the project tracks work as one markdown file per item under `items/`, use
-`/planning-items-review` instead.
+## Step 0 — check for an item store FIRST (mandatory)
+
+Before reading `TODO.md`, before anything else:
+
+```bash
+ls items/scripts/itemlib.py 2>/dev/null; ls items/*.md 2>/dev/null | head -3
+```
+
+If either produces output, this project's tracker is the **item store**, not
+`TODO.md`. **Stop and tell the user to run `/planning-items-review` instead.**
+
+This check is unconditional and comes first. It is NOT conditional on `TODO.md`
+being missing — a repo can have both: a live `items/` store *and* a stale
+hand-authored `TODO.md` still sitting at the repo root from before the store
+existed, large and entirely plausible-looking. An audit built on that file
+reports a work list that is months out of date, in the confident voice of a
+fresh review — the most damaging thing this skill can produce. **The presence of
+`TODO.md` proves nothing. The presence of `items/` is decisive.**
 
 ## When to use
 
